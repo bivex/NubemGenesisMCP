@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NubemSuperFClaude MCP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px 32px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-email {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .welcome {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .new-tenant-alert {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .new-tenant-alert h2 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+
+        .api-key-display {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .api-key-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            opacity: 0.9;
+        }
+
+        .api-key-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 16px;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .copy-btn {
+            background: white;
+            color: #38a169;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .warning {
+            background: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid #fbbf24;
+            padding: 16px;
+            border-radius: 6px;
+            margin-top: 16px;
+            font-size: 15px;
+        }
+
+        .warning strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .plan-badge {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 12px 0 8px 0;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+        }
+
+        .progress-text {
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .usage-text {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .quick-start {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .quick-start pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .copy-code-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #4a5568;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .copy-code-btn:hover {
+            background: #2d3748;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #48bb78;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .toast.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🚀 NubemSuperFClaude</div>
+            <div class="user-info">
+                <div>{{ user_name }}</div>
+                <div class="user-email">{{ user_email }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- New Tenant Alert (shown only if new API key) -->
+        {% if is_new_tenant and new_api_key %}
+        <div class="new-tenant-alert">
+            <h2>🎉 Welcome! Your account has been created</h2>
+
+            <div class="api-key-display">
+                <div class="api-key-label">📋 Your API Key (save it now!):</div>
+                <div class="api-key-value">
+                    <code id="api-key">{{ new_api_key }}</code>
+                    <button class="copy-btn" onclick="copyApiKey()">📋 Copy</button>
+                </div>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ IMPORTANT: You won't see this key again!</strong>
+                Copy it now and store it securely. Do NOT commit it to Git or share it publicly.
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Welcome Message -->
+        <h1 class="welcome">
+            {% if is_new_tenant %}
+            Welcome to NubemSuperFClaude! 🚀
+            {% else %}
+            Welcome back, {{ user_name.split()[0] }}! 👋
+            {% endif %}
+        </h1>
+
+        <!-- Tenant Info Card -->
+        <div class="card">
+            <div class="card-title">📊 Your Account</div>
+            <p><strong>Plan:</strong> <span class="plan-badge">{{ tenant.plan|upper }}</span></p>
+            <p style="margin-top: 8px;"><strong>Status:</strong> {{ tenant.status|capitalize }}</p>
+        </div>
+
+        <!-- Usage Card -->
+        <div class="card">
+            <div class="card-title">📈 Usage This Month</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ (usage.requests / quota.max_requests_per_month * 100)|int }}%">
+                    <span class="progress-text">{{ (usage.requests / quota.max_requests_per_month * 100)|int }}%</span>
+                </div>
+            </div>
+            <p class="usage-text">{{ usage.requests }} / {{ quota.max_requests_per_month }} requests used</p>
+        </div>
+
+        <!-- Quick Start Card -->
+        {% if is_new_tenant %}
+        <div class="card">
+            <div class="card-title">🚀 Quick Start</div>
+            <p>Use your API key to start making requests:</p>
+            <div class="quick-start">
+                <button class="copy-code-btn" onclick="copyCode()">Copy</button>
+                <pre id="code-snippet">curl -X POST https://nubemsfc.nubemsystems.es/mcp \
+  -H "X-API-Key: {{ new_api_key }}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/list",
+    "id": 1
+  }'</pre>
+            </div>
+
+            <div class="btn-group">
+                <a href="https://docs.nubemsystems.es" class="btn btn-primary" target="_blank">📚 View Documentation</a>
+                <a href="/api/v1/tenants/{{ tenant.id }}/api-keys" class="btn btn-secondary">🔑 Manage API Keys</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">✅ Copied to clipboard!</div>
+
+    <script>
+        function copyApiKey() {
+            const apiKey = document.getElementById('api-key').textContent;
+            navigator.clipboard.writeText(apiKey).then(() => {
+                showToast();
+            });
+        }
+
+        function copyCode() {
+            const code = document.getElementById('code-snippet').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showToast();
+            });
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auto-delete new_api_key cookie after reading (security)
+        {% if new_api_key %}
+        setTimeout(() => {
+            document.cookie = 'new_api_key=; Max-Age=0; path=/';
+        }, 1000);
+        {% endif %}
+    </script>
+</body>
+</html>

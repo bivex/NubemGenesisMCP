@@ -1,0 +1,57 @@
+# Filesystem MCP - File and Directory Operations
+# Official MCP from Model Context Protocol
+# https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
+
+name: filesystem
+category: Data & Storage
+transport: stdio
+
+connection:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-filesystem"
+    - "/tmp"  # Allowed directory path
+  env: {}
+
+capabilities:
+  - file_read
+  - file_write
+  - file_delete
+  - directory_list
+  - directory_create
+  - file_search
+  - file_metadata
+
+description: >
+  Provides secure filesystem operations within allowed directories.
+  Can read, write, delete files, list directories, and search for files.
+  Limited to specified directory paths for security.
+
+tags:
+  - files
+  - storage
+  - filesystem
+  - local
+  - read
+  - write
+
+priority: 70
+health_check_interval: 60
+timeout: 30
+retry_attempts: 3
+circuit_breaker_threshold: 5
+
+version: "1.0.0"
+author: "Model Context Protocol Team"
+documentation_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem"
+
+# Expected tools:
+# - read_file: Read contents of a file
+# - write_file: Write contents to a file
+# - create_directory: Create a new directory
+# - list_directory: List contents of a directory
+# - move_file: Move or rename a file
+# - search_files: Search for files matching a pattern
+# - get_file_info: Get metadata about a file
+# - delete_file: Delete a file (use with caution)

@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mcp-server-ingress
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "nubemsgenesis-mcp-ip"
+    networking.gke.io/managed-certificates: "mcp-server-cert"
+    kubernetes.io/ingress.class: "gce"
+  labels:
+    app: mcp-server
+spec:
+  rules:
+  - host: mcp.nubemsystems.com  # Replace with your actual domain
+    http:
+      paths:
+      - path: /*
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: mcp-server
+            port:
+              number: 80
+  # Fallback for IP access
+  - http:
+      paths:
+      - path: /*
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: mcp-server
+            port:
+              number: 80
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: mcp-server-cert
+  namespace: production
+spec:
+  domains:
+    - mcp.nubemsystems.com  # Replace with your actual domain

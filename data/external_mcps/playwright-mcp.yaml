@@ -1,0 +1,87 @@
+# Playwright MCP - Cross-Browser Automation
+# Official MCP from Microsoft Playwright Team
+# https://github.com/microsoft/playwright-mcp
+
+name: playwright
+category: Browser Automation
+transport: stdio
+
+connection:
+  command: npx
+  args:
+    - "@playwright/mcp@latest"
+  env: {}  # No credentials required
+
+capabilities:
+  - multi_browser_support  # Chrome, Firefox, Safari
+  - navigate_to_url
+  - screenshot_capture
+  - click_element
+  - fill_form
+  - execute_javascript
+  - wait_for_element
+  - accessibility_snapshots
+  - network_interception
+  - mobile_emulation
+  - video_recording
+  - trace_recording
+  - codegen_automation
+
+description: >
+  Provides cross-browser automation capabilities using Microsoft Playwright.
+  Supports Chrome, Firefox, and Safari. Enables interaction with web pages
+  through structured accessibility snapshots, bypassing the need for
+  screenshots or visually-tuned models. Includes advanced features like
+  network interception, mobile emulation, and test generation.
+
+tags:
+  - playwright
+  - browser
+  - automation
+  - testing
+  - cross-browser
+  - web
+  - chromium
+  - firefox
+  - webkit
+  - microsoft
+
+priority: 90  # Higher than Puppeteer due to multi-browser support
+health_check_interval: 60
+timeout: 60
+retry_attempts: 3
+circuit_breaker_threshold: 5
+
+version: "latest"
+author: "Microsoft Corporation"
+documentation_url: "https://github.com/microsoft/playwright-mcp"
+
+# Expected tools:
+# - playwright_navigate: Navigate to a URL
+# - playwright_screenshot: Take a screenshot
+# - playwright_click: Click an element
+# - playwright_fill: Fill a form field
+# - playwright_evaluate: Execute JavaScript in page context
+# - playwright_snapshot: Get accessibility snapshot
+# - playwright_select_browser: Choose browser (chromium, firefox, webkit)
+# - playwright_mobile_emulate: Emulate mobile device
+# - playwright_intercept: Intercept network requests
+
+# Use cases:
+# - Cross-browser testing
+# - Web scraping (all major browsers)
+# - Automated testing with accessibility
+# - Mobile web testing
+# - Network monitoring and mocking
+# - Test recording and generation
+# - Screenshot comparison testing
+
+# Requirements:
+# - Node.js 18 or newer
+
+# Key advantages over Puppeteer:
+# - Multi-browser support (Chrome, Firefox, Safari)
+# - Structured accessibility snapshots
+# - Better mobile emulation
+# - Built-in test generation
+# - Video and trace recording

@@ -1,0 +1,70 @@
+# GitHub MCP - GitHub Repository Operations
+# Official MCP from Model Context Protocol
+# https://github.com/modelcontextprotocol/servers/tree/main/src/github
+
+name: github
+category: Development Tools
+transport: stdio
+
+connection:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-github"
+  env:
+    GITHUB_TOKEN: ${GITHUB_TOKEN}  # Set this environment variable
+
+capabilities:
+  - repository_operations
+  - issue_management
+  - pull_request_management
+  - code_search
+  - branch_management
+  - commit_operations
+  - file_operations
+  - github_actions
+
+description: >
+  Provides comprehensive GitHub repository operations including managing issues,
+  pull requests, branches, commits, and files. Can search code, create PRs,
+  manage issues, and interact with GitHub Actions.
+
+tags:
+  - github
+  - git
+  - repository
+  - issues
+  - pull-requests
+  - version-control
+  - collaboration
+
+priority: 80
+health_check_interval: 60
+timeout: 30
+retry_attempts: 3
+circuit_breaker_threshold: 5
+
+version: "1.0.0"
+author: "Model Context Protocol Team"
+documentation_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/github"
+
+# Expected tools:
+# - create_or_update_file: Create or update a file in a repository
+# - search_repositories: Search for GitHub repositories
+# - create_repository: Create a new repository
+# - get_file_contents: Get contents of a file from a repository
+# - push_files: Push multiple files to a repository
+# - create_issue: Create a new issue
+# - create_pull_request: Create a new pull request
+# - fork_repository: Fork a repository
+# - create_branch: Create a new branch
+# - list_commits: List commits in a repository
+# - list_issues: List issues in a repository
+# - update_issue: Update an existing issue
+# - add_issue_comment: Add a comment to an issue
+# - search_code: Search for code in repositories
+# - search_issues: Search for issues
+# - get_pull_request: Get details of a pull request
+# - list_pull_requests: List pull requests
+
+# Note: Requires GITHUB_TOKEN environment variable with appropriate permissions

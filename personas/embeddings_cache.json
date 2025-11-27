@@ -1,0 +1,398 @@
+{
+  "persona-architect": {
+    "embedding": [
+      0.5163977794943222,
+      0.2581988897471611,
+      0.2581988897471611,
+      0.5163977794943222,
+      0.5163977794943222,
+      0.2581988897471611
+    ],
+    "metadata": {
+      "category": "meta",
+      "level": "L5+",
+      "description": "Meta-Architect for persona system design"
+    },
+    "text": "persona-architect Meta-Architect for persona system design meta"
+  },
+  "architect": {
+    "embedding": [
+      0.6324555320336759,
+      0.6324555320336759,
+      0.31622776601683794,
+      0.31622776601683794
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: architect"
+    },
+    "text": "architect Core engineering persona: architect core"
+  },
+  "frontend": {
+    "embedding": [
+      0.6324555320336759,
+      0.31622776601683794,
+      0.6324555320336759,
+      0.31622776601683794
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: frontend"
+    },
+    "text": "frontend Core engineering persona: frontend core"
+  },
+  "backend": {
+    "embedding": [
+      0.6324555320336759,
+      0.6324555320336759,
+      0.31622776601683794,
+      0.31622776601683794
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: backend"
+    },
+    "text": "backend Core engineering persona: backend core"
+  },
+  "analyzer": {
+    "embedding": [
+      0.6324555320336759,
+      0.6324555320336759,
+      0.31622776601683794,
+      0.31622776601683794
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: analyzer"
+    },
+    "text": "analyzer Core engineering persona: analyzer core"
+  },
+  "security": {
+    "embedding": [
+      0.6324555320336759,
+      0.31622776601683794,
+      0.31622776601683794,
+      0.6324555320336759
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: security"
+    },
+    "text": "security Core engineering persona: security core"
+  },
+  "performance": {
+    "embedding": [
+      0.6324555320336759,
+      0.31622776601683794,
+      0.6324555320336759,
+      0.31622776601683794
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: performance"
+    },
+    "text": "performance Core engineering persona: performance core"
+  },
+  "documenter": {
+    "embedding": [
+      0.6324555320336759,
+      0.6324555320336759,
+      0.31622776601683794,
+      0.31622776601683794
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: documenter"
+    },
+    "text": "documenter Core engineering persona: documenter core"
+  },
+  "tester": {
+    "embedding": [
+      0.6324555320336759,
+      0.31622776601683794,
+      0.31622776601683794,
+      0.6324555320336759
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: tester"
+    },
+    "text": "tester Core engineering persona: tester core"
+  },
+  "devops": {
+    "embedding": [
+      0.6324555320336759,
+      0.6324555320336759,
+      0.31622776601683794,
+      0.31622776601683794
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: devops"
+    },
+    "text": "devops Core engineering persona: devops core"
+  },
+  "refactorer": {
+    "embedding": [
+      0.6324555320336759,
+      0.31622776601683794,
+      0.31622776601683794,
+      0.6324555320336759
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: refactorer"
+    },
+    "text": "refactorer Core engineering persona: refactorer core"
+  },
+  "mentor": {
+    "embedding": [
+      0.6324555320336759,
+      0.31622776601683794,
+      0.6324555320336759,
+      0.31622776601683794
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: mentor"
+    },
+    "text": "mentor Core engineering persona: mentor core"
+  },
+  "ai-specialist": {
+    "embedding": [
+      0.5345224838248488,
+      0.5345224838248488,
+      0.2672612419124244,
+      0.2672612419124244,
+      0.5345224838248488
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: ai-specialist"
+    },
+    "text": "ai-specialist Core engineering persona: ai-specialist core"
+  },
+  "data-engineer": {
+    "embedding": [
+      0.5345224838248488,
+      0.5345224838248488,
+      0.5345224838248488,
+      0.2672612419124244,
+      0.2672612419124244
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: data-engineer"
+    },
+    "text": "data-engineer Core engineering persona: data-engineer core"
+  },
+  "cloud-specialist": {
+    "embedding": [
+      0.5345224838248488,
+      0.5345224838248488,
+      0.2672612419124244,
+      0.2672612419124244,
+      0.5345224838248488
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: cloud-specialist"
+    },
+    "text": "cloud-specialist Core engineering persona: cloud-specialist core"
+  },
+  "product-manager": {
+    "embedding": [
+      0.5345224838248488,
+      0.2672612419124244,
+      0.5345224838248488,
+      0.2672612419124244,
+      0.5345224838248488
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: product-manager"
+    },
+    "text": "product-manager Core engineering persona: product-manager core"
+  },
+  "ux-researcher": {
+    "embedding": [
+      0.5345224838248488,
+      0.2672612419124244,
+      0.2672612419124244,
+      0.5345224838248488,
+      0.5345224838248488
+    ],
+    "metadata": {
+      "category": "core",
+      "level": "L4-L5",
+      "description": "Core engineering persona: ux-researcher"
+    },
+    "text": "ux-researcher Core engineering persona: ux-researcher core"
+  },
+  "mobile-developer": {
+    "embedding": [
+      0.5547001962252291,
+      0.5547001962252291,
+      0.2773500981126146,
+      0.5547001962252291
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: mobile-developer"
+    },
+    "text": "mobile-developer Specialist persona: mobile-developer specialist"
+  },
+  "blockchain-developer": {
+    "embedding": [
+      0.5547001962252291,
+      0.5547001962252291,
+      0.2773500981126146,
+      0.5547001962252291
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: blockchain-developer"
+    },
+    "text": "blockchain-developer Specialist persona: blockchain-developer specialist"
+  },
+  "game-developer": {
+    "embedding": [
+      0.5547001962252291,
+      0.5547001962252291,
+      0.2773500981126146,
+      0.5547001962252291
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: game-developer"
+    },
+    "text": "game-developer Specialist persona: game-developer specialist"
+  },
+  "embedded-systems": {
+    "embedding": [
+      0.5547001962252291,
+      0.2773500981126146,
+      0.5547001962252291,
+      0.5547001962252291
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: embedded-systems"
+    },
+    "text": "embedded-systems Specialist persona: embedded-systems specialist"
+  },
+  "accessibility-specialist": {
+    "embedding": [
+      0.4364357804719848,
+      0.2182178902359924,
+      0.8728715609439696
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: accessibility-specialist"
+    },
+    "text": "accessibility-specialist Specialist persona: accessibility-specialist specialist"
+  },
+  "api-architect": {
+    "embedding": [
+      0.5547001962252291,
+      0.5547001962252291,
+      0.2773500981126146,
+      0.5547001962252291
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: api-architect"
+    },
+    "text": "api-architect Specialist persona: api-architect specialist"
+  },
+  "database-specialist": {
+    "embedding": [
+      0.4364357804719848,
+      0.2182178902359924,
+      0.8728715609439696
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: database-specialist"
+    },
+    "text": "database-specialist Specialist persona: database-specialist specialist"
+  },
+  "integration-specialist": {
+    "embedding": [
+      0.4364357804719848,
+      0.2182178902359924,
+      0.8728715609439696
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: integration-specialist"
+    },
+    "text": "integration-specialist Specialist persona: integration-specialist specialist"
+  },
+  "monitoring-expert": {
+    "embedding": [
+      0.5547001962252291,
+      0.5547001962252291,
+      0.2773500981126146,
+      0.5547001962252291
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: monitoring-expert"
+    },
+    "text": "monitoring-expert Specialist persona: monitoring-expert specialist"
+  },
+  "incident-responder": {
+    "embedding": [
+      0.5547001962252291,
+      0.2773500981126146,
+      0.5547001962252291,
+      0.5547001962252291
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: incident-responder"
+    },
+    "text": "incident-responder Specialist persona: incident-responder specialist"
+  },
+  "business-analyst": {
+    "embedding": [
+      0.5547001962252291,
+      0.5547001962252291,
+      0.2773500981126146,
+      0.5547001962252291
+    ],
+    "metadata": {
+      "category": "specialist",
+      "level": "L4",
+      "description": "Specialist persona: business-analyst"
+    },
+    "text": "business-analyst Specialist persona: business-analyst specialist"
+  }
+}

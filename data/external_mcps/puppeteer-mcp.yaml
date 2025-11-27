@@ -1,0 +1,70 @@
+# Puppeteer MCP - Browser Automation
+# Official MCP from Model Context Protocol
+# https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer
+
+name: puppeteer
+category: Browser Automation
+transport: stdio
+
+connection:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-puppeteer"
+  env: {}  # No credentials required
+
+capabilities:
+  - navigate_to_url
+  - screenshot_capture
+  - click_element
+  - fill_form
+  - execute_javascript
+  - wait_for_element
+  - pdf_generation
+  - network_monitoring
+  - cookie_management
+  - page_evaluation
+
+description: >
+  Provides browser automation capabilities using Puppeteer, enabling
+  interaction with web pages, taking screenshots, filling forms,
+  executing JavaScript, and monitoring network activity.
+  Works with Chromium-based browsers.
+
+tags:
+  - puppeteer
+  - browser
+  - automation
+  - scraping
+  - testing
+  - web
+  - chromium
+
+priority: 85
+health_check_interval: 60
+timeout: 60  # Longer timeout for page loads
+retry_attempts: 3
+circuit_breaker_threshold: 5
+
+version: "2025.5.12"
+author: "Model Context Protocol Team"
+documentation_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer"
+
+# Expected tools:
+# - puppeteer_navigate: Navigate to a URL
+# - puppeteer_screenshot: Take a screenshot
+# - puppeteer_click: Click an element
+# - puppeteer_fill: Fill a form field
+# - puppeteer_evaluate: Execute JavaScript in page context
+# - puppeteer_pdf: Generate PDF from page
+# - puppeteer_cookies: Get/set cookies
+
+# Use cases:
+# - Web scraping
+# - Automated testing
+# - Screenshot generation
+# - Form automation
+# - PDF generation
+# - Dynamic content extraction
+
+# Note: Runs headless Chrome by default

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "nubemsuperfclaude": {
+      "command": "python3",
+      "args": [
+        "/Users/david/NubemSuperFClaude_git/mcp_server/server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "/Users/david/NubemSuperFClaude_git"
+      }
+    }
+  }
+}

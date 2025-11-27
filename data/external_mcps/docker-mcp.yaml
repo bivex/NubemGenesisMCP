@@ -1,0 +1,87 @@
+# Docker MCP - Container Management
+# Community MCP for Docker operations
+# https://github.com/QuantGeekDev/docker-mcp
+
+name: docker
+category: DevOps
+transport: stdio
+
+connection:
+  command: npx
+  args:
+    - "-y"
+    - "docker-mcp"
+  env: {}  # Uses local Docker daemon
+
+capabilities:
+  - container_management
+  - image_management
+  - network_management
+  - volume_management
+  - docker_compose
+  - container_logs
+  - container_exec
+  - image_build
+  - registry_operations
+
+description: >
+  Provides Docker container and image management capabilities through MCP.
+  Enables AI agents to interact with Docker daemon for container operations,
+  image building, network configuration, and resource management.
+  Integrates with Docker Hub and local Docker installation.
+
+tags:
+  - docker
+  - containers
+  - devops
+  - deployment
+  - orchestration
+  - images
+  - microservices
+
+priority: 80
+health_check_interval: 60
+timeout: 30
+retry_attempts: 3
+circuit_breaker_threshold: 5
+
+version: "latest"
+author: "Community"
+documentation_url: "https://github.com/QuantGeekDev/docker-mcp"
+
+# Expected tools:
+# - docker_ps: List running containers
+# - docker_images: List images
+# - docker_run: Run a container
+# - docker_stop: Stop a container
+# - docker_rm: Remove a container
+# - docker_rmi: Remove an image
+# - docker_logs: Get container logs
+# - docker_exec: Execute command in container
+# - docker_build: Build an image from Dockerfile
+# - docker_pull: Pull image from registry
+# - docker_push: Push image to registry
+# - docker_compose_up: Start services defined in docker-compose
+# - docker_compose_down: Stop services
+# - docker_network_ls: List networks
+# - docker_volume_ls: List volumes
+
+# Use cases:
+# - Container lifecycle management
+# - Image building and deployment
+# - Log analysis and debugging
+# - Resource monitoring
+# - Multi-container orchestration
+# - CI/CD automation
+# - Development environment setup
+
+# Requirements:
+# - Docker installed and running locally
+# - Docker daemon accessible
+# - Appropriate permissions for Docker operations
+
+# Security notes:
+# - Requires Docker socket access
+# - Be cautious with container execution permissions
+# - Validate all container configurations
+# - Use trusted images only

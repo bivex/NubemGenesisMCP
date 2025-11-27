@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Login - NubemSuperFClaude Secrets{% endblock %}
+
+{% block extra_head %}
+<style>
+    .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card-shadow {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen gradient-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl card-shadow">
+        <!-- Logo and Header -->
+        <div class="text-center">
+            <div class="flex justify-center mb-6">
+                <div class="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                    <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900">
+                NubemSuperFClaude
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Multi-Tenant Secrets Management
+            </p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="mt-8 space-y-6">
+            <!-- Welcome Message -->
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-5 rounded-lg">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-base text-blue-700">
+                            Sign in with your NubemSystems account to manage your secrets securely.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google OAuth Button -->
+            <div>
+                <a
+                    href="/auth/login"
+                    class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-sm"
+                >
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"></path>
+                        </svg>
+                    </span>
+                    Sign in with Google
+                </a>
+            </div>
+
+            <!-- Development Mode Token -->
+            {% if dev_mode %}
+            <div class="mt-6 border-t border-gray-200 pt-6">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">
+                                Development Mode
+                            </h3>
+                            <p class="mt-1 text-xs text-yellow-700">
+                                You can generate a test token without OAuth for development purposes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="devTokenForm" class="space-y-4">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">
+                            Email Address
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            required
+                            value="test@nubemsystems.es"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="test@nubemsystems.es"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        Generate Dev Token
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Features List -->
+            <div class="mt-6">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Features</h3>
+                <ul class="space-y-2">
+                    <li class="flex items-center text-sm text-gray-600">
+                        <svg class="w-4 h-4 mr-2 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>Multi-tenant architecture</span>
+                    </li>
+                    <li class="flex items-center text-sm text-gray-600">
+                        <svg class="w-4 h-4 mr-2 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>Encrypted storage with Google Secret Manager</span>
+                    </li>
+                    <li class="flex items-center text-sm text-gray-600">
+                        <svg class="w-4 h-4 mr-2 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>OAuth 2.0 authentication</span>
+                    </li>
+                    <li class="flex items-center text-sm text-gray-600">
+                        <svg class="w-4 h-4 mr-2 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>RESTful API with rate limiting</span>
+                    </li>
+                    <li class="flex items-center text-sm text-gray-600">
+                        <svg class="w-4 h-4 mr-2 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>Full CRUD operations</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center text-xs text-gray-500 mt-6">
+                <p>
+                    By signing in, you agree to our
+                    <a href="#" class="text-blue-600 hover:text-blue-500">Terms of Service</a>
+                    and
+                    <a href="#" class="text-blue-600 hover:text-blue-500">Privacy Policy</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Handle dev token form submission
+{% if dev_mode %}
+document.getElementById('devTokenForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value;
+
+    try {
+        const response = await fetch(`/auth/token?email=${encodeURIComponent(email)}`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('auth_token', data.access_token);
+
+            // Show success message
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            notification.textContent = 'Token generated! Redirecting...';
+            document.body.appendChild(notification);
+
+            // Redirect to dashboard
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1000);
+        } else {
+            alert('Error generating token: ' + response.statusText);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+{% endif %}
+
+// Check if already logged in
+if (localStorage.getItem('auth_token')) {
+    // Verify token is valid
+    fetch('/api/v1/me', {
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Redirect to dashboard if already logged in
+            window.location.href = '/dashboard';
+        }
+    });
+}
+</script>
+{% endblock %}

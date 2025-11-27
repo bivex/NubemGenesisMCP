@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - NubemSuperFClaude Secrets{% endblock %}
+
+{% block extra_head %}
+<style>
+    .secret-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .secret-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: inline-block;
+    }
+    .htmx-request.htmx-swapping {
+        opacity: 0.5;
+        transition: opacity 0.3s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6">
+    <!-- Header Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex justify-between items-center">
+            <div class="flex-1">
+                <h1 class="text-2xl font-semibold text-gray-900">Secrets Dashboard</h1>
+                <p class="text-sm text-gray-600 mt-1">Manage your API keys, tokens and credentials securely</p>
+            </div>
+            <div id="userInfo" class="flex items-center mr-4">
+                <!-- User info will be inserted by JavaScript -->
+            </div>
+            <button
+                onclick="document.getElementById('createModal').classList.remove('hidden')"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm flex items-center shadow-sm"
+            >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                </svg>
+                New Secret
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600 mb-1">Total Secrets</p>
+                    <p id="totalSecrets" class="text-3xl font-bold text-gray-900">-</p>
+                </div>
+                <div class="ml-4 flex-shrink-0">
+                    <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600 mb-1">Active</p>
+                    <p id="activeSecrets" class="text-3xl font-bold text-gray-900">-</p>
+                </div>
+                <div class="ml-4 flex-shrink-0">
+                    <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600 mb-1">With Labels</p>
+                    <p id="labeledSecrets" class="text-3xl font-bold text-gray-900">-</p>
+                </div>
+                <div class="ml-4 flex-shrink-0">
+                    <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secrets List Section -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Your Secrets</h2>
+            <button
+                hx-get="/api/v1/secrets"
+                hx-trigger="click"
+                hx-target="#secretsList"
+                hx-swap="innerHTML"
+                class="px-5 py-2.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center font-medium text-base"
+            >
+                <svg class="w-6 h-6 mr-2 htmx-indicator" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Refresh
+            </button>
+        </div>
+
+        <!-- Secrets List Container -->
+        <div id="secretsList" class="space-y-3">
+            <!-- Loading state -->
+            <div class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Secret Modal -->
+<div id="createModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Create New Secret</h2>
+            <button
+                onclick="document.getElementById('createModal').classList.add('hidden')"
+                class="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-lg transition-all duration-200"
+                title="Close"
+            >
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form onsubmit="event.preventDefault(); createSecret();">
+            <div class="mb-5">
+                <label class="block text-gray-700 font-semibold mb-2 text-base" for="newSecretName">
+                    Secret Name
+                </label>
+                <input
+                    type="text"
+                    id="newSecretName"
+                    name="name"
+                    required
+                    class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="e.g., openai-api-key"
+                />
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-gray-700 font-semibold mb-2 text-base" for="newSecretValue">
+                    Secret Value
+                </label>
+                <textarea
+                    id="newSecretValue"
+                    name="value"
+                    required
+                    rows="3"
+                    class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="Enter your secret value"
+                ></textarea>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 font-semibold mb-2 text-base" for="newSecretLabels">
+                    Labels (Optional)
+                </label>
+                <input
+                    type="text"
+                    id="newSecretLabels"
+                    name="labels"
+                    class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder='{"env": "production", "service": "api"}'
+                />
+                <p class="text-sm text-gray-500 mt-2">JSON format: {"key": "value"}</p>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button
+                    type="button"
+                    onclick="document.getElementById('createModal').classList.add('hidden')"
+                    class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 text-base font-medium hover:bg-gray-50 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    class="px-6 py-3 bg-blue-600 text-white text-base font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+                >
+                    Create Secret
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Secret Modal -->
+<div id="editModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Update Secret</h2>
+            <button
+                onclick="document.getElementById('editModal').classList.add('hidden')"
+                class="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-lg transition-all duration-200"
+                title="Close"
+            >
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form id="editForm">
+            <input type="hidden" id="editSecretName" name="name" />
+
+            <div class="mb-5">
+                <label class="block text-gray-700 font-semibold mb-2 text-base">
+                    Secret Name
+                </label>
+                <p id="editSecretNameDisplay" class="text-gray-600 font-mono text-base bg-gray-50 px-4 py-3 rounded-lg"></p>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 font-semibold mb-2 text-base" for="editSecretValue">
+                    New Secret Value
+                </label>
+                <textarea
+                    id="editSecretValue"
+                    name="value"
+                    required
+                    rows="3"
+                    class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="Enter new secret value"
+                ></textarea>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button
+                    type="button"
+                    onclick="document.getElementById('editModal').classList.add('hidden')"
+                    class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 text-base font-medium hover:bg-gray-50 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    class="px-6 py-3 bg-blue-600 text-white text-base font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+                >
+                    Update Secret
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- View Secret Modal -->
+<div id="viewModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">View Secret</h2>
+            <button
+                onclick="document.getElementById('viewModal').classList.add('hidden')"
+                class="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-lg transition-all duration-200"
+                title="Close"
+            >
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="mb-5">
+            <label class="block text-gray-700 font-semibold mb-2 text-base">
+                Secret Name
+            </label>
+            <p id="viewSecretName" class="text-gray-900 font-mono text-base bg-gray-50 px-4 py-3 rounded-lg"></p>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 font-semibold mb-2 text-base">
+                Secret Value
+            </label>
+            <div class="relative">
+                <p id="viewSecretValue" class="text-gray-900 font-mono text-base bg-gray-50 px-4 py-3 pr-12 rounded-lg break-all"></p>
+                <button
+                    onclick="copyToClipboard(document.getElementById('viewSecretValue').textContent)"
+                    class="absolute top-2 right-2 p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-all duration-200"
+                    title="Copy to clipboard"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button
+                onclick="document.getElementById('viewModal').classList.add('hidden')"
+                class="px-6 py-3 bg-gray-600 text-white text-base font-semibold rounded-lg hover:bg-gray-700 transition-colors shadow-sm hover:shadow-md"
+            >
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Copy to clipboard functionality
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Show success notification
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+        notification.textContent = 'Copied to clipboard!';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 2000);
+    });
+}
+
+// Update stats
+function updateStats() {
+    fetch('/api/v1/secrets', {
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+        }
+    })
+    .then(response => response.json())
+    .then(secrets => {
+        document.getElementById('totalSecrets').textContent = secrets.length;
+        document.getElementById('activeSecrets').textContent = secrets.length;
+        document.getElementById('labeledSecrets').textContent = secrets.filter(s => s.labels).length;
+    });
+}
+
+// Load stats on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Load secrets immediately after auth check
+    setTimeout(() => {
+        if (window.loadSecrets) {
+            window.loadSecrets();
+        }
+    }, 100);
+
+    // Update stats periodically
+    updateStats();
+    setInterval(updateStats, 30000); // Update every 30 seconds
+});
+
+// Handle htmx events
+document.body.addEventListener('htmx:afterSwap', (event) => {
+    if (event.detail.target.id === 'secretsList') {
+        updateStats();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,453 @@
+# MCPs FASE 1 - Configuración para NubemSuperFClaude Meta-MCP
+# 8 MCPs críticos con credenciales desde Kubernetes Secrets
+
+mcps:
+  # =========================================================================
+  # 1. GitHub MCP - Gestión de repositorios
+  # =========================================================================
+  - name: "github"
+    enabled: true
+    priority: 1
+    category: "development"
+    description: "GitHub repository management, PRs, issues, code search"
+
+    # Credentials
+    credentials_source: "kubernetes"
+    secret_name: "mcp-github-secrets"
+    required_credentials:
+      - env_var: "GITHUB_TOKEN"
+        secret_key: "GITHUB_TOKEN"
+
+    # Transport configuration
+    transport:
+      type: "stdio"
+      command: "npx"
+      args:
+        - "-y"
+        - "@modelcontextprotocol/server-github"
+
+    # Capabilities
+    capabilities:
+      - "repository_management"
+      - "pull_requests"
+      - "issues"
+      - "code_search"
+      - "workflows"
+
+    # Health check
+    health_check:
+      enabled: true
+      endpoint: "https://api.github.com/user"
+      method: "GET"
+      headers:
+        Authorization: "token ${GITHUB_TOKEN}"
+
+    # Metadata
+    metadata:
+      package: "@modelcontextprotocol/server-github"
+      version: "latest"
+      official: true
+      docs_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/github"
+
+  # =========================================================================
+  # 2. OpenAI MCP - GPT models, embeddings
+  # =========================================================================
+  - name: "openai"
+    enabled: true
+    priority: 1
+    category: "ai"
+    description: "OpenAI GPT models, embeddings, completions"
+
+    credentials_source: "kubernetes"
+    secret_name: "mcp-openai-secrets"
+    required_credentials:
+      - env_var: "OPENAI_API_KEY"
+        secret_key: "OPENAI_API_KEY"
+
+    transport:
+      type: "http"
+      base_url: "https://api.openai.com/v1"
+
+    capabilities:
+      - "text_generation"
+      - "embeddings"
+      - "chat_completions"
+      - "models_list"
+
+    health_check:
+      enabled: true
+      endpoint: "https://api.openai.com/v1/models"
+      method: "GET"
+      headers:
+        Authorization: "Bearer ${OPENAI_API_KEY}"
+
+    metadata:
+      official: true
+      docs_url: "https://platform.openai.com/docs"
+
+  # =========================================================================
+  # 3. Anthropic MCP - Claude models
+  # =========================================================================
+  - name: "anthropic"
+    enabled: true
+    priority: 1
+    category: "ai"
+    description: "Anthropic Claude models"
+
+    credentials_source: "kubernetes"
+    secret_name: "mcp-anthropic-secrets"
+    required_credentials:
+      - env_var: "ANTHROPIC_API_KEY"
+        secret_key: "ANTHROPIC_API_KEY"
+
+    transport:
+      type: "http"
+      base_url: "https://api.anthropic.com/v1"
+
+    capabilities:
+      - "chat_completions"
+      - "messages"
+      - "streaming"
+
+    health_check:
+      enabled: false  # No public health endpoint
+
+    metadata:
+      official: true
+      docs_url: "https://docs.anthropic.com"
+
+  # =========================================================================
+  # 4. GCP MCP - Google Cloud Platform
+  # =========================================================================
+  - name: "gcp"
+    enabled: true
+    priority: 2
+    category: "cloud"
+    description: "Google Cloud Platform services"
+
+    credentials_source: "kubernetes"
+    secret_name: "mcp-gcp-secrets"
+    required_credentials:
+      - env_var: "GCP_PROJECT_ID"
+        secret_key: "GCP_PROJECT_ID"
+
+    transport:
+      type: "stdio"
+      command: "gcloud"
+      args: []
+
+    capabilities:
+      - "compute"
+      - "storage"
+      - "kubernetes"
+      - "secret_manager"
+
+    health_check:
+      enabled: false
+
+    metadata:
+      official: false
+      docs_url: "https://cloud.google.com/sdk/gcloud"
+
+  # =========================================================================
+  # 5. Kubernetes MCP - K8s management
+  # =========================================================================
+  - name: "kubernetes"
+    enabled: true
+    priority: 2
+    category: "cloud"
+    description: "Kubernetes cluster management"
+
+    credentials_source: "kubernetes"
+    secret_name: "mcp-kubernetes-secrets"
+    required_credentials:
+      - env_var: "KUBECONFIG"
+        secret_key: "KUBECONFIG"
+
+    transport:
+      type: "stdio"
+      command: "kubectl"
+      args: []
+
+    capabilities:
+      - "pod_management"
+      - "deployment_management"
+      - "service_management"
+      - "config_management"
+
+    health_check:
+      enabled: false
+
+    metadata:
+      official: false
+      docs_url: "https://kubernetes.io/docs/reference/kubectl/"
+
+  # =========================================================================
+  # 6. Filesystem MCP - File operations
+  # =========================================================================
+  - name: "filesystem"
+    enabled: true
+    priority: 1
+    category: "reference"
+    description: "Secure file operations with configurable access controls"
+
+    credentials_source: "none"
+    required_credentials: []
+
+    transport:
+      type: "stdio"
+      command: "npx"
+      args:
+        - "-y"
+        - "@modelcontextprotocol/server-filesystem"
+        - "/app/data"
+        - "/app/workspace"
+
+    capabilities:
+      - "read_file"
+      - "write_file"
+      - "list_directory"
+      - "search_files"
+
+    config:
+      allowed_paths:
+        - "/app/data"
+        - "/app/workspace"
+        - "/tmp"
+
+    health_check:
+      enabled: false
+
+    metadata:
+      package: "@modelcontextprotocol/server-filesystem"
+      version: "latest"
+      official: true
+      docs_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem"
+
+  # =========================================================================
+  # 7. Git MCP - Git operations
+  # =========================================================================
+  - name: "git"
+    enabled: true
+    priority: 1
+    category: "reference"
+    description: "Git repository operations"
+
+    credentials_source: "none"
+    required_credentials: []
+
+    transport:
+      type: "stdio"
+      command: "npx"
+      args:
+        - "-y"
+        - "@modelcontextprotocol/server-git"
+
+    capabilities:
+      - "read_repository"
+      - "search_code"
+      - "view_commits"
+      - "diff"
+
+    health_check:
+      enabled: false
+
+    metadata:
+      package: "@modelcontextprotocol/server-git"
+      version: "latest"
+      official: true
+      docs_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/git"
+
+  # =========================================================================
+  # 8. Memory MCP - Knowledge graph
+  # =========================================================================
+  - name: "memory"
+    enabled: true
+    priority: 1
+    category: "reference"
+    description: "Knowledge graph-based persistent memory system"
+
+    credentials_source: "none"
+    required_credentials: []
+
+    transport:
+      type: "stdio"
+      command: "npx"
+      args:
+        - "-y"
+        - "@modelcontextprotocol/server-memory"
+
+    capabilities:
+      - "knowledge_graph"
+      - "entity_storage"
+      - "relation_mapping"
+      - "memory_retrieval"
+
+    health_check:
+      enabled: false
+
+    metadata:
+      package: "@modelcontextprotocol/server-memory"
+      version: "latest"
+      official: true
+      docs_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/memory"
+
+  # =========================================================================
+  # 9. Puppeteer MCP - Browser automation
+  # =========================================================================
+  - name: "puppeteer"
+    enabled: true
+    priority: 2
+    category: "automation"
+    description: "Browser automation using Puppeteer (Chromium)"
+
+    credentials_source: "none"
+    required_credentials: []
+
+    transport:
+      type: "stdio"
+      command: "npx"
+      args:
+        - "-y"
+        - "@modelcontextprotocol/server-puppeteer"
+
+    capabilities:
+      - "navigate_to_url"
+      - "screenshot_capture"
+      - "click_element"
+      - "fill_form"
+      - "execute_javascript"
+      - "wait_for_element"
+      - "pdf_generation"
+      - "network_monitoring"
+
+    health_check:
+      enabled: false
+
+    metadata:
+      package: "@modelcontextprotocol/server-puppeteer"
+      version: "2025.5.12"
+      official: true
+      docs_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer"
+
+  # =========================================================================
+  # 10. Playwright MCP - Cross-browser automation
+  # =========================================================================
+  - name: "playwright"
+    enabled: true
+    priority: 2
+    category: "automation"
+    description: "Cross-browser automation (Chrome, Firefox, Safari)"
+
+    credentials_source: "none"
+    required_credentials: []
+
+    transport:
+      type: "stdio"
+      command: "npx"
+      args:
+        - "@playwright/mcp@latest"
+
+    capabilities:
+      - "multi_browser_support"
+      - "navigate_to_url"
+      - "screenshot_capture"
+      - "click_element"
+      - "fill_form"
+      - "execute_javascript"
+      - "accessibility_snapshots"
+      - "mobile_emulation"
+      - "video_recording"
+
+    health_check:
+      enabled: false
+
+    metadata:
+      package: "@playwright/mcp"
+      version: "latest"
+      official: true
+      docs_url: "https://github.com/microsoft/playwright-mcp"
+
+  # =========================================================================
+  # 11. Docker MCP - Container management
+  # =========================================================================
+  - name: "docker"
+    enabled: true
+    priority: 2
+    category: "devops"
+    description: "Docker container and image management"
+
+    credentials_source: "none"
+    required_credentials: []
+
+    transport:
+      type: "stdio"
+      command: "npx"
+      args:
+        - "-y"
+        - "docker-mcp"
+
+    capabilities:
+      - "container_management"
+      - "image_management"
+      - "network_management"
+      - "volume_management"
+      - "docker_compose"
+      - "container_logs"
+      - "image_build"
+
+    health_check:
+      enabled: false
+
+    metadata:
+      package: "docker-mcp"
+      version: "latest"
+      official: false
+      docs_url: "https://github.com/QuantGeekDev/docker-mcp"
+
+# =========================================================================
+# Global configuration
+# =========================================================================
+global:
+  # Credentials
+  credentials:
+    namespace: "default"
+    cache_ttl_seconds: 300
+    auto_refresh: true
+
+  # Health checks
+  health_checks:
+    enabled: true
+    interval_seconds: 60
+    timeout_seconds: 10
+    retry_attempts: 3
+
+  # Connection pool
+  connection_pool:
+    max_connections_per_mcp: 5
+    idle_timeout_seconds: 300
+    keepalive: true
+
+  # Logging
+  logging:
+    level: "INFO"
+    log_credentials: false
+    log_requests: true
+    log_responses: false
+
+# =========================================================================
+# Metadata
+# =========================================================================
+metadata:
+  version: "1.1.0"
+  fase: 1
+  total_mcps: 11
+  mcps_with_credentials: 5
+  mcps_without_credentials: 6
+  created: "2025-10-19"
+  updated: "2025-10-20"
+  project: "NubemSuperFClaude"
+  new_mcps:
+    - "puppeteer"
+    - "playwright"
+    - "docker"

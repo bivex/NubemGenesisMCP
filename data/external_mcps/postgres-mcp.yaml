@@ -1,0 +1,69 @@
+# PostgreSQL MCP - Database Operations
+# Official MCP from Model Context Protocol
+# https://github.com/modelcontextprotocol/servers/tree/main/src/postgres
+
+name: postgres
+category: Databases
+transport: stdio
+
+connection:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-postgres"
+  env:
+    POSTGRES_CONNECTION: ${POSTGRES_CONNECTION_STRING}  # postgresql://user:pass@host:port/dbname
+
+capabilities:
+  - sql_query
+  - schema_inspection
+  - table_operations
+  - data_manipulation
+  - database_metadata
+  - query_execution
+  - transaction_management
+
+description: >
+  Provides PostgreSQL database operations including executing queries,
+  inspecting schema, managing tables, and retrieving metadata.
+  Supports complex SQL queries and transactions.
+
+tags:
+  - postgresql
+  - database
+  - sql
+  - data
+  - queries
+  - relational-db
+
+priority: 75
+health_check_interval: 60
+timeout: 60  # Longer timeout for complex queries
+retry_attempts: 3
+circuit_breaker_threshold: 5
+
+version: "1.0.0"
+author: "Model Context Protocol Team"
+documentation_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres"
+
+# Expected tools:
+# - query: Execute a SQL query
+# - list_tables: List all tables in the database
+# - describe_table: Get schema information for a table
+# - execute_sql: Execute arbitrary SQL statements
+# - get_table_info: Get detailed table information
+# - list_schemas: List all schemas in the database
+# - list_databases: List all databases
+
+# Security notes:
+# - Read-only operations recommended for safety
+# - Use dedicated database user with limited permissions
+# - Validate all inputs to prevent SQL injection
+# - Consider using parameterized queries
+
+# Connection string format:
+# postgresql://username:password@hostname:port/database
+# Example: postgresql://user:pass@localhost:5432/mydb
+#
+# For Cloud SQL:
+# postgresql://user:pass@/database?host=/cloudsql/project:region:instance

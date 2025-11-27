@@ -1,0 +1,76 @@
+# Slack MCP - Slack Workspace Operations
+# Official MCP from Model Context Protocol
+# https://github.com/modelcontextprotocol/servers/tree/main/src/slack
+
+name: slack
+category: Communication & Collaboration
+transport: stdio
+
+connection:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-slack"
+  env:
+    SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}  # xoxb-...
+    SLACK_TEAM_ID: ${SLACK_TEAM_ID}  # Optional
+
+capabilities:
+  - message_sending
+  - channel_management
+  - user_management
+  - file_upload
+  - conversation_history
+  - search
+  - reactions
+  - notifications
+
+description: >
+  Provides Slack workspace operations including sending messages,
+  managing channels, uploading files, searching conversations,
+  and managing users. Can interact with Slack Bot API.
+
+tags:
+  - slack
+  - messaging
+  - communication
+  - collaboration
+  - notifications
+  - chat
+
+priority: 65
+health_check_interval: 60
+timeout: 30
+retry_attempts: 3
+circuit_breaker_threshold: 5
+
+version: "1.0.0"
+author: "Model Context Protocol Team"
+documentation_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/slack"
+
+# Expected tools:
+# - post_message: Post a message to a channel
+# - list_channels: List all channels in workspace
+# - create_channel: Create a new channel
+# - join_channel: Join an existing channel
+# - upload_file: Upload a file to Slack
+# - search_messages: Search for messages
+# - get_user_info: Get information about a user
+# - list_users: List all users in workspace
+# - add_reaction: Add a reaction to a message
+# - get_conversation_history: Get message history from a channel
+# - update_message: Update an existing message
+# - delete_message: Delete a message
+# - set_channel_topic: Set channel topic
+# - invite_user_to_channel: Invite user to channel
+
+# Security notes:
+# - Requires Slack Bot Token with appropriate scopes
+# - Scopes needed: channels:read, channels:write, chat:write, files:write, users:read
+# - Create bot at https://api.slack.com/apps
+
+# To get bot token:
+# 1. Create Slack App at https://api.slack.com/apps
+# 2. Add Bot Token Scopes: channels:read, channels:write, chat:write, files:write
+# 3. Install app to workspace
+# 4. Copy Bot User OAuth Token (starts with xoxb-)

@@ -1,0 +1,107 @@
+# Basic Monitoring Configuration for NubemGenesisMCP
+# Uses GKE's built-in Cloud Monitoring (formerly Stackdriver)
+
+---
+# ServiceMonitor for Prometheus-style metrics scraping
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-config
+  namespace: production
+data:
+  # Alert thresholds
+  cpu_threshold: "80"
+  memory_threshold: "85"
+  error_rate_threshold: "5"
+  response_time_p95: "200"
+  response_time_p99: "500"
+
+  # Monitoring endpoints
+  health_check_interval: "30s"
+  metrics_scrape_interval: "15s"
+
+---
+# Custom metrics for application monitoring
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alert-rules
+  namespace: production
+data:
+  rules.yaml: |
+    groups:
+    - name: mcp_server_alerts
+      interval: 30s
+      rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total{pod=~"mcp-server-.*"}[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: mcp-server
+        annotations:
+          summary: "High CPU usage detected"
+          description: "Pod {{ $labels.pod }} has high CPU usage: {{ $value }}"
+
+      # High Memory usage
+      - alert: HighMemoryUsage
+        expr: container_memory_usage_bytes{pod=~"mcp-server-.*"} / container_spec_memory_limit_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: mcp-server
+        annotations:
+          summary: "High memory usage detected"
+          description: "Pod {{ $labels.pod }} memory usage: {{ $value }}"
+
+      # Pod not ready
+      - alert: PodNotReady
+        expr: kube_pod_status_ready{pod=~"mcp-server-.*",condition="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: mcp-server
+        annotations:
+          summary: "Pod not ready"
+          description: "Pod {{ $labels.pod }} is not ready for 5 minutes"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.*"}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          component: mcp-server
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} (>5%)"
+
+      # Slow response time
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: mcp-server
+        annotations:
+          summary: "Slow response time detected"
+          description: "P95 latency is {{ $value }}s"
+
+---
+# PodMonitor for monitoring MCP server pods
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: mcp-server-monitor
+  namespace: production
+  labels:
+    app: mcp-server
+spec:
+  selector:
+    matchLabels:
+      app: mcp-server
+  podMetricsEndpoints:
+  - port: http
+    path: /metrics
+    interval: 15s

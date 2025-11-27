@@ -1,0 +1,443 @@
+# Fase 4-5 MCPs Configuration - 15-20 On-Demand MCPs
+# Implementation Date: 2025-12+ (Week 11-16)
+# Strategy: Implement based on actual demand from Fase 2-3 usage
+
+metadata:
+  version: "4.0.0"
+  fase: "4-5"
+  approach: "on_demand"
+  total_mcps: 15-20
+  cumulative_total: 35-40
+  deployment_target: "as_needed"
+  status: "implement_on_demand"
+  depends_on: "fase3_operational_1month"
+
+# ========================================
+# ON-DEMAND IMPLEMENTATION STRATEGY
+# ========================================
+
+implementation_strategy:
+  approach: "demand_driven"
+
+  triggers:
+    - "User requests specific integration >3 times"
+    - "Clear business value identified"
+    - "No suitable alternative exists"
+    - "Cost-benefit analysis positive"
+
+  decision_matrix:
+    priority_1_implement_immediately:
+      - "Critical business need"
+      - "Revenue impact >$10K/month"
+      - "Time savings >20 hours/week"
+
+    priority_2_implement_this_quarter:
+      - "High value but not urgent"
+      - "Multiple user requests"
+      - "Strategic importance"
+
+    priority_3_backlog:
+      - "Nice-to-have"
+      - "Low usage expected"
+      - "High cost vs low benefit"
+
+# ========================================
+# CATEGORY 1: ANALYTICS (Implement if analytics need emerges)
+# ========================================
+
+analytics_mcps:
+  - name: "mixpanel"
+    display_name: "Mixpanel"
+    enabled: false  # Enable on demand
+    priority: 3
+    category: "analytics"
+
+    triggers_for_activation:
+      - "Need for product analytics"
+      - "User behavior tracking required"
+      - "Funnel analysis needed"
+
+    estimated_setup: "1 hour"
+    monthly_cost: "25-100"
+    expert_score: "40/50"
+
+  - name: "amplitude"
+    display_name: "Amplitude"
+    enabled: false
+    priority: 3
+    category: "analytics"
+
+    triggers_for_activation:
+      - "Advanced cohort analysis needed"
+      - "Mixpanel alternative required"
+
+    estimated_setup: "1 hour"
+    monthly_cost: "50-200"
+    expert_score: "39/50"
+
+  - name: "google-analytics"
+    display_name: "Google Analytics"
+    enabled: false
+    priority: 3
+    category: "analytics"
+
+    note: "Already covered by Google Workspace if needed for basic analytics"
+
+# ========================================
+# CATEGORY 2: MORE DATABASES (If specialized DB needs emerge)
+# ========================================
+
+additional_databases:
+  - name: "mysql"
+    display_name: "MySQL"
+    enabled: false
+    priority: 3
+    category: "database"
+
+    triggers_for_activation:
+      - "Legacy MySQL database needs access"
+      - "Client uses MySQL exclusively"
+
+    note: "PostgreSQL covers most SQL needs, only add if specific MySQL requirement"
+    estimated_setup: "0.5 hours"
+    monthly_cost: "0-25"
+
+  - name: "elasticsearch"
+    display_name: "Elasticsearch"
+    enabled: false
+    priority: 3
+    category: "database"
+
+    triggers_for_activation:
+      - "Full-text search requirements"
+      - "Log analytics at scale"
+      - "Complex aggregations needed"
+
+    estimated_setup: "2 hours"
+    monthly_cost: "50-500"
+
+# ========================================
+# CATEGORY 3: ADDITIONAL PROJECT MANAGEMENT
+# ========================================
+
+more_pm_tools:
+  - name: "asana"
+    display_name: "Asana"
+    enabled: false
+    priority: 3
+    category: "project_management"
+
+    triggers_for_activation:
+      - "Team prefers Asana over Jira"
+      - "Asana-specific workflow needed"
+
+    note: "Jira already covers PM, only add if team uses Asana"
+    estimated_setup: "1 hour"
+    monthly_cost: "10-30"
+
+  - name: "linear"
+    display_name: "Linear"
+    enabled: false
+    priority: 3
+    category: "project_management"
+
+    triggers_for_activation:
+      - "Engineering team prefers Linear"
+      - "Need modern PM tool"
+
+    note: "Alternative to Jira for engineering teams"
+    estimated_setup: "0.75 hours"
+    monthly_cost: "8/user"
+
+  - name: "monday"
+    display_name: "Monday.com"
+    enabled: false
+    priority: 3
+    category: "project_management"
+
+    triggers_for_activation:
+      - "Client uses Monday.com"
+      - "Visual workflow management needed"
+
+# ========================================
+# CATEGORY 4: SOCIAL MEDIA (Only if social media management needed)
+# ========================================
+
+social_media_mcps:
+  - name: "twitter"
+    display_name: "Twitter/X"
+    enabled: false
+    priority: 3
+    category: "social_media"
+
+    triggers_for_activation:
+      - "Social media marketing campaign"
+      - "Twitter automation needed"
+
+    estimated_setup: "1 hour"
+    monthly_cost: "100"  # API costs
+
+  - name: "linkedin"
+    display_name: "LinkedIn"
+    enabled: false
+    priority: 3
+    category: "social_media"
+
+    triggers_for_activation:
+      - "B2B marketing automation"
+      - "LinkedIn posting needed"
+
+# ========================================
+# CATEGORY 5: MORE E-COMMERCE (Only if e-commerce focus)
+# ========================================
+
+ecommerce_mcps:
+  - name: "shopify"
+    display_name: "Shopify"
+    enabled: false
+    priority: 3
+    category: "ecommerce"
+
+    triggers_for_activation:
+      - "Client is Shopify merchant"
+      - "E-commerce automation needed"
+
+    estimated_setup: "1.5 hours"
+    monthly_cost: "0"  # API access included
+
+  - name: "woocommerce"
+    display_name: "WooCommerce"
+    enabled: false
+    priority: 3
+    category: "ecommerce"
+
+    triggers_for_activation:
+      - "WordPress/WooCommerce store management"
+
+# ========================================
+# CATEGORY 6: ADDITIONAL CLOUD PROVIDERS
+# ========================================
+
+more_cloud:
+  - name: "azure"
+    display_name: "Microsoft Azure"
+    enabled: false
+    priority: 3
+    category: "cloud"
+
+    triggers_for_activation:
+      - "Client infrastructure on Azure"
+      - "Azure-specific services needed"
+
+    note: "GCP + AWS covers most needs, Azure only if required"
+    estimated_setup: "1.5 hours"
+
+  - name: "cloudflare"
+    display_name: "Cloudflare"
+    enabled: false
+    priority: 3
+    category: "cloud"
+
+    triggers_for_activation:
+      - "Edge computing needs"
+      - "CDN management required"
+      - "Workers deployment"
+
+    estimated_setup: "1 hour"
+    monthly_cost: "5-20"
+
+# ========================================
+# CATEGORY 7: MORE CRM OPTIONS
+# ========================================
+
+additional_crm:
+  - name: "salesforce"
+    display_name: "Salesforce"
+    enabled: false
+    priority: 3
+    category: "crm"
+
+    triggers_for_activation:
+      - "Enterprise client uses Salesforce"
+      - "Complex sales pipeline needed"
+
+    note: "HubSpot covers most CRM needs, Salesforce for enterprise"
+    estimated_setup: "2 hours"
+    monthly_cost: "25-150/user"
+
+  - name: "zendesk"
+    display_name: "Zendesk"
+    enabled: false
+    priority: 3
+    category: "crm"
+
+    triggers_for_activation:
+      - "Customer support ticketing needed"
+      - "Help desk automation"
+
+# ========================================
+# CATEGORY 8: MONITORING & OBSERVABILITY
+# ========================================
+
+additional_monitoring:
+  - name: "datadog"
+    display_name: "Datadog"
+    enabled: false
+    priority: 3
+    category: "monitoring"
+
+    triggers_for_activation:
+      - "APM tracing needed"
+      - "Advanced monitoring beyond Sentry"
+
+    note: "Sentry + Prometheus covers most needs"
+    estimated_setup: "2 hours"
+    monthly_cost: "15-200"
+
+  - name: "new-relic"
+    display_name: "New Relic"
+    enabled: false
+    priority: 3
+    category: "monitoring"
+
+    triggers_for_activation:
+      - "Alternative to Datadog needed"
+      - "Client already uses New Relic"
+
+# ========================================
+# RECOMMENDED INITIAL SUBSET (15 MCPs)
+# ========================================
+
+recommended_initial_phase_4:
+  description: "If implementing Phase 4, start with these 15 MCPs based on likely demand"
+
+  mcps:
+    # Analytics (2)
+    - "mixpanel"
+    - "amplitude"
+
+    # Databases (2)
+    - "mysql"
+    - "elasticsearch"
+
+    # PM Tools (3)
+    - "asana"
+    - "linear"
+    - "monday"
+
+    # Social Media (2)
+    - "twitter"
+    - "linkedin"
+
+    # E-commerce (2)
+    - "shopify"
+    - "woocommerce"
+
+    # Cloud (2)
+    - "azure"
+    - "cloudflare"
+
+    # CRM (1)
+    - "salesforce"
+
+    # Monitoring (1)
+    - "datadog"
+
+  total: 15
+  estimated_setup_time: "18-22 hours"
+  estimated_monthly_cost: "300-800"
+
+# ========================================
+# DECISION FRAMEWORK
+# ========================================
+
+decision_framework:
+  before_adding_any_mcp:
+    questions:
+      - "Is this need already covered by existing 18 MCPs?"
+      - "Can Google Workspace cover this? (it has 10 services)"
+      - "Is there a workaround using existing tools?"
+      - "What is the expected usage frequency?"
+      - "What is the cost vs benefit?"
+      - "How many users will use this?"
+
+    approval_required_if:
+      - "Monthly cost >$50"
+      - "Setup time >2 hours"
+      - "Adds operational complexity"
+
+    automatic_approval_if:
+      - "Requested by >3 users"
+      - "Clear revenue impact"
+      - "Free tier available"
+      - "Setup time <1 hour"
+
+  implementation_process:
+    1: "User request received"
+    2: "Evaluate against existing capabilities"
+    3: "Cost-benefit analysis"
+    4: "Add to backlog or implement"
+    5: "Deploy to development"
+    6: "Monitor usage for 1 week"
+    7: "Deploy to production if used"
+    8: "Review after 1 month - keep or remove"
+
+# ========================================
+# USAGE TRACKING
+# ========================================
+
+usage_tracking:
+  enabled: true
+
+  metrics_to_track:
+    - "API calls per MCP per day"
+    - "Unique users per MCP"
+    - "Success rate per MCP"
+    - "Cost per MCP per month"
+    - "Time saved estimation"
+
+  review_frequency: "monthly"
+
+  removal_criteria:
+    - "Zero usage for 30 days"
+    - "Cost >$100/month with <10 API calls/day"
+    - "Error rate >20%"
+    - "Duplicate functionality with better alternative"
+
+# ========================================
+# NOTES
+# ========================================
+
+notes: |
+  FASE 4-5: ON-DEMAND IMPLEMENTATION STRATEGY
+
+  Philosophy:
+  - Don't add MCPs "because we can"
+  - Every MCP has operational overhead
+  - Quality > Quantity
+  - Usage-driven decisions
+
+  Current state after Fase 3:
+  - 18 MCPs covering core needs
+  - ~70% of common use cases covered
+  - Strong foundation in place
+
+  Phase 4-5 approach:
+  - Monitor Fase 2-3 usage for 1 month
+  - Identify gaps in actual usage
+  - Implement only what's needed
+  - Target: 35-40 total MCPs (add 15-20)
+
+  Expert Panel Recommendation:
+  - "40 MCPs bien elegidos > 100 MCPs mediocres"
+  - Focus on frequently used integrations
+  - Maintain high quality standards
+  - Keep operational complexity manageable
+
+  Timeline: Flexible, implement as needed over months 4-6
+
+  Success Metrics:
+  - Each new MCP has >50 API calls/month
+  - Cost per MCP <$50/month (or clear ROI)
+  - Error rate <5%
+  - User satisfaction >8/10

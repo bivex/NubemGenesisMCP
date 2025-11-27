@@ -1,0 +1,217 @@
+# Automated Backup Configuration for NubemGenesisMCP
+# Creates backups of Redis data and configuration files
+
+---
+# ConfigMap for backup scripts
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: production
+data:
+  backup-redis.sh: |
+    #!/bin/bash
+    set -e
+
+    DATE=$(date +%Y%m%d-%H%M%S)
+    BACKUP_DIR="/backups/redis"
+    REDIS_HOST="${REDIS_HOST:-redis-device-flow}"
+    REDIS_PORT="${REDIS_PORT:-6379}"
+
+    echo "Starting Redis backup at $DATE"
+    mkdir -p "$BACKUP_DIR"
+
+    # Trigger Redis BGSAVE
+    redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" BGSAVE
+
+    # Wait for save to complete
+    sleep 5
+
+    # Copy dump.rdb file
+    kubectl exec -n production deployment/redis-device-flow -- \
+      cat /data/dump.rdb > "$BACKUP_DIR/redis-$DATE.rdb"
+
+    echo "Redis backup completed: redis-$DATE.rdb"
+
+    # Keep only last 7 days of backups
+    find "$BACKUP_DIR" -name "redis-*.rdb" -mtime +7 -delete
+
+    # Upload to GCS (optional)
+    if [ -n "$GCS_BUCKET" ]; then
+      gsutil cp "$BACKUP_DIR/redis-$DATE.rdb" "gs://$GCS_BUCKET/redis-backups/"
+      echo "Backup uploaded to GCS"
+    fi
+
+  backup-configs.sh: |
+    #!/bin/bash
+    set -e
+
+    DATE=$(date +%Y%m%d-%H%M%S)
+    BACKUP_DIR="/backups/configs"
+
+    echo "Starting config backup at $DATE"
+    mkdir -p "$BACKUP_DIR"
+
+    # Backup all ConfigMaps
+    kubectl get configmaps -n production -o yaml > "$BACKUP_DIR/configmaps-$DATE.yaml"
+
+    # Backup all Secrets (base64 encoded)
+    kubectl get secrets -n production -o yaml > "$BACKUP_DIR/secrets-$DATE.yaml"
+
+    # Backup deployments
+    kubectl get deployments -n production -o yaml > "$BACKUP_DIR/deployments-$DATE.yaml"
+
+    # Backup services
+    kubectl get services -n production -o yaml > "$BACKUP_DIR/services-$DATE.yaml"
+
+    echo "Config backup completed"
+
+    # Keep only last 30 days of config backups
+    find "$BACKUP_DIR" -name "*-$DATE.yaml" -mtime +30 -delete
+
+    # Upload to GCS (optional)
+    if [ -n "$GCS_BUCKET" ]; then
+      tar czf "$BACKUP_DIR/configs-$DATE.tar.gz" "$BACKUP_DIR"/*-$DATE.yaml
+      gsutil cp "$BACKUP_DIR/configs-$DATE.tar.gz" "gs://$GCS_BUCKET/config-backups/"
+      echo "Config backup uploaded to GCS"
+    fi
+
+---
+# PersistentVolumeClaim for backup storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-storage
+  namespace: production
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard-rwo
+
+---
+# CronJob for Redis backups (daily at 2 AM)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: redis-backup
+  namespace: production
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-service-account
+          containers:
+          - name: redis-backup
+            image: google/cloud-sdk:alpine
+            command:
+            - /bin/bash
+            - /scripts/backup-redis.sh
+            env:
+            - name: REDIS_HOST
+              value: "redis-device-flow"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: GCS_BUCKET
+              value: "nubemsgenesis-mcp-backups"
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backups
+            - name: backup-scripts
+              mountPath: /scripts
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-storage
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+
+---
+# CronJob for config backups (daily at 3 AM)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: config-backup
+  namespace: production
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-service-account
+          containers:
+          - name: config-backup
+            image: google/cloud-sdk:alpine
+            command:
+            - /bin/bash
+            - /scripts/backup-configs.sh
+            env:
+            - name: GCS_BUCKET
+              value: "nubemsgenesis-mcp-backups"
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backups
+            - name: backup-scripts
+              mountPath: /scripts
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-storage
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+
+---
+# ServiceAccount for backup jobs
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-service-account
+  namespace: production
+
+---
+# Role for backup operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-role
+  namespace: production
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets", "services", "pods", "pods/exec"]
+  verbs: ["get", "list"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["get", "list"]
+
+---
+# RoleBinding for backup service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-rolebinding
+  namespace: production
+subjects:
+- kind: ServiceAccount
+  name: backup-service-account
+  namespace: production
+roleRef:
+  kind: Role
+  name: backup-role
+  apiGroup: rbac.authorization.k8s.io

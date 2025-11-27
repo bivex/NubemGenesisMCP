@@ -1,0 +1,59 @@
+# NubemSuperFClaude - Optimized Requirements
+# Version: 2.1.0 - Removed unused dependencies
+# Date: 2025-01-15
+
+# ===== Core Dependencies (USED) =====
+python-dotenv==1.0.1
+pyyaml==6.0.2
+rich==13.9.4
+click==8.1.8
+
+# ===== LLM APIs (USED) =====
+anthropic==0.67.0
+openai==1.107.2
+google-generativeai==0.8.5
+groq==0.11.0
+
+# ===== Web Framework (USED) =====
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+starlette==0.41.3
+pydantic==2.10.4
+aiohttp==3.11.11
+aiofiles==24.1.0
+httpx==0.28.1
+websockets==14.1
+
+# ===== Data Processing (PARTIALLY USED) =====
+numpy==1.26.4  # Used extensively
+pandas==2.2.3  # Used in 1 file only - consider removing
+scikit-learn==1.5.2  # Used in 9 files
+
+# ===== Caching & Storage (USED) =====
+redis==5.2.1
+hiredis==3.0.0
+
+# ===== Security (USED) =====
+cryptography==44.0.0
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# ===== Testing (KEEP FOR DEV) =====
+pytest==8.3.4
+pytest-asyncio==0.25.0
+pytest-cov==6.0.0
+
+# ===== Development Tools (KEEP FOR DEV) =====
+black==24.10.0
+flake8==7.1.1
+mypy==1.14.0
+
+# ===== Utilities (USED) =====
+tqdm==4.67.1
+
+# ===== REMOVED (Not used in code) =====
+# python-multipart - Not imported anywhere
+# validators - Not imported anywhere
+# joblib - Not imported anywhere
+# python-dateutil - Not imported anywhere
+# scipy - Not imported anywhere

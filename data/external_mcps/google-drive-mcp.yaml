@@ -1,0 +1,81 @@
+# Google Drive MCP - Google Drive Operations
+# Official MCP from Model Context Protocol
+# https://github.com/modelcontextprotocol/servers/tree/main/src/gdrive
+
+name: google-drive
+category: Cloud Storage
+transport: stdio
+
+connection:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-gdrive"
+  env:
+    GDRIVE_CLIENT_ID: ${GDRIVE_CLIENT_ID}
+    GDRIVE_CLIENT_SECRET: ${GDRIVE_CLIENT_SECRET}
+    GDRIVE_REFRESH_TOKEN: ${GDRIVE_REFRESH_TOKEN}
+
+capabilities:
+  - file_upload
+  - file_download
+  - file_search
+  - folder_management
+  - file_sharing
+  - permissions_management
+  - metadata_access
+  - file_export
+
+description: >
+  Provides Google Drive operations including uploading and downloading files,
+  searching, creating folders, managing sharing permissions, and exporting files
+  in different formats. Supports Google Docs, Sheets, and Slides.
+
+tags:
+  - google-drive
+  - cloud-storage
+  - files
+  - collaboration
+  - documents
+  - google-workspace
+
+priority: 70
+health_check_interval: 60
+timeout: 60  # Longer timeout for large file uploads
+retry_attempts: 3
+circuit_breaker_threshold: 5
+
+version: "1.0.0"
+author: "Model Context Protocol Team"
+documentation_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/gdrive"
+
+# Expected tools:
+# - upload_file: Upload a file to Google Drive
+# - download_file: Download a file from Google Drive
+# - search_files: Search for files in Drive
+# - create_folder: Create a new folder
+# - list_files: List files in a folder
+# - get_file_metadata: Get metadata for a file
+# - share_file: Share a file with users
+# - set_permissions: Set file permissions
+# - export_file: Export Google Docs/Sheets in different formats
+# - move_file: Move file to different folder
+# - delete_file: Delete a file (moves to trash)
+# - copy_file: Create a copy of a file
+
+# OAuth Setup:
+# 1. Go to Google Cloud Console
+# 2. Create project and enable Google Drive API
+# 3. Create OAuth 2.0 credentials
+# 4. Get client ID and client secret
+# 5. Generate refresh token using OAuth playground
+#
+# Required scopes:
+# - https://www.googleapis.com/auth/drive
+# - https://www.googleapis.com/auth/drive.file
+# - https://www.googleapis.com/auth/drive.metadata.readonly
+
+# Export formats:
+# - Google Docs: PDF, DOCX, HTML, TXT
+# - Google Sheets: XLSX, CSV, PDF
+# - Google Slides: PPTX, PDF

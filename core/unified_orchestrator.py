@@ -1,0 +1,793 @@
+#!/usr/bin/env python3
+"""
+Unified Orchestrator - Consolidates all orchestration strategies
+Replaces: orchestrator.py, persona_orchestrator.py, vector_persona_orchestrator.py, optimized_orchestrator.py
+"""
+
+import asyncio
+import logging
+from typing import Dict, Any, Optional, List, Union
+from abc import ABC, abstractmethod
+from datetime import datetime
+from functools import lru_cache
+import json
+
+# Import circuit breaker for resilience
+from .circuit_breaker import CircuitBreaker, with_circuit_breaker, with_retry
+
+logger = logging.getLogger(__name__)
+
+
+class OrchestrationStrategy(ABC):
+    """Base class for orchestration strategies"""
+    
+    @abstractmethod
+    async def orchestrate(self, task: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute orchestration strategy"""
+        pass
+    
+    @abstractmethod
+    def get_name(self) -> str:
+        """Get strategy name"""
+        pass
+
+
+class PersonaStrategy(OrchestrationStrategy):
+    """Persona-based orchestration strategy"""
+    
+    def __init__(self, persona_manager=None):
+        from .personas_unified import UnifiedPersonaManager
+        self.persona_manager = persona_manager or UnifiedPersonaManager()
+        self.task_analyzer = TaskAnalyzer()
+    
+    async def orchestrate(self, task: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute persona-based orchestration"""
+
+        # FIX BUG #4: Check for explicit persona_key first!
+        explicit_persona_key = context.get('persona_key')
+
+        if explicit_persona_key:
+            # User explicitly requested this persona
+            logger.info(f"✓ Using explicitly requested persona: {explicit_persona_key}")
+
+            # Try to get persona from loaded personas first
+            persona = self.persona_manager.personas.get(explicit_persona_key)
+
+            if not persona:
+                # If not loaded yet, try to load all personas if lazy mode is on
+                if self.persona_manager.lazy_load and len(self.persona_manager.personas) == 0:
+                    logger.info(f"  Personas not loaded yet, loading all personas...")
+                    self.persona_manager.load_all_personas()
+                    persona = self.persona_manager.personas.get(explicit_persona_key)
+
+            if not persona:
+                # Still not found, try get_persona method (checks external personas)
+                try:
+                    persona_dict = self.persona_manager.get_persona(explicit_persona_key)
+                    if persona_dict:
+                        # Convert dict to Persona object if needed
+                        persona = self.persona_manager.personas.get(explicit_persona_key)
+                except Exception as e:
+                    logger.debug(f"  get_persona failed: {e}")
+
+            if persona:
+                # Found! Execute with explicitly requested persona
+                execute_result = await persona.execute(task, context)
+
+                # FIX BUG #5: Extract the actual result string from execute() response
+                return {
+                    'strategy': 'persona',
+                    'persona_used': persona.name,
+                    'persona_requested': explicit_persona_key,
+                    'result': execute_result.get('result', execute_result),  # Extract result string
+                    'confidence': execute_result.get('confidence', 0.9)  # High confidence (user explicitly requested it)
+                }
+            else:
+                # Persona not found after all attempts
+                logger.error(f"❌ Requested persona '{explicit_persona_key}' not found in {len(self.persona_manager.personas)} loaded personas")
+                logger.warning(f"⚠️  Falling back to task analysis")
+                task_context = self.task_analyzer.analyze(task, context)
+                persona = self._select_persona(task_context, context)
+
+                if not persona:
+                    raise ValueError(f"Persona '{explicit_persona_key}' not found and no fallback available")
+
+                execute_result = await persona.execute(task, context)
+
+                # FIX BUG #5: Extract the actual result string from execute() response
+                return {
+                    'strategy': 'persona',
+                    'persona_used': persona.name,
+                    'persona_requested': explicit_persona_key,
+                    'fallback_used': True,
+                    'result': execute_result.get('result', execute_result),  # Extract result string
+                    'confidence': execute_result.get('confidence', 0.6)  # Lower confidence (fallback)
+                }
+
+        # Normal flow: analyze task and select persona
+        task_context = self.task_analyzer.analyze(task, context)
+        persona = self._select_persona(task_context, context)
+        execute_result = await persona.execute(task, context)
+
+        # FIX BUG #5: Extract the actual result string from execute() response
+        return {
+            'strategy': 'persona',
+            'persona_used': persona.name,
+            'result': execute_result.get('result', execute_result),  # Extract result string
+            'confidence': execute_result.get('confidence', task_context.get('confidence', 0.8))
+        }
+    
+    def _select_persona(self, task_context: Dict, context: Dict[str, Any] = None) -> Any:
+        """Select best persona for task (when not explicitly specified)"""
+        context = context or {}
+
+        # Enhanced mapping with priority system
+        task_type = task_context.get('task_type', 'general')
+        domain = task_context.get('domain', context.get('domain', 'general'))
+        complexity = task_context.get('complexity', 5)
+
+        # Priority 1: Domain-specific mapping (expanded from 5 to 15 domains)
+        domain_map = {
+            'architecture': 'architect',
+            'backend': 'backend',
+            'frontend': 'frontend',
+            'devops': 'devops-engineer',
+            'kubernetes': 'kubernetes-expert',
+            'security': 'security-architect',
+            'data': 'data-engineer',
+            'ml': 'ml-engineer',
+            'ai': 'ai-specialist',
+            'cloud': 'cloud-architect',
+            'gcp': 'gcp-architect',
+            'nlp': 'nlp-expert',
+            'testing': 'testing-expert',
+            'debugging': 'debugging-expert',
+            'database': 'database-architect'
+        }
+
+        if domain in domain_map:
+            persona_name = domain_map[domain]
+            persona = self.persona_manager.personas.get(persona_name)
+            if persona:
+                logger.info(f"  Selected {persona_name} based on domain: {domain}")
+                return persona
+
+        # Priority 2: Task type mapping (enhanced from 5 to 10 types)
+        task_map = {
+            'coding': 'senior-developer',
+            'data': 'data-engineer',
+            'writing': 'technical-writer',
+            'translation': 'localization-engineer',
+            'research': 'research-scientist',
+            'debugging': 'debugging-expert',
+            'review': 'code-reviewer',
+            'architecture': 'architect',
+            'security': 'security-architect',
+            'testing': 'testing-expert'
+        }
+
+        if task_type in task_map:
+            persona_name = task_map[task_type]
+            persona = self.persona_manager.personas.get(persona_name)
+            if persona:
+                logger.info(f"  Selected {persona_name} based on task type: {task_type}")
+                return persona
+
+        # Fallback: architect (most versatile)
+        logger.info(f"⚠️  No specific match found, using 'architect' as fallback")
+        fallback = self.persona_manager.personas.get('architect')
+
+        if not fallback and len(self.persona_manager.personas) > 0:
+            # If architect doesn't exist, use first available persona
+            fallback = list(self.persona_manager.personas.values())[0]
+            logger.warning(f"⚠️  'architect' not found, using {fallback.name} as fallback")
+
+        return fallback
+    
+    def get_name(self) -> str:
+        return "PersonaStrategy"
+
+
+class VectorStrategy(OrchestrationStrategy):
+    """Vector search based orchestration strategy"""
+    
+    def __init__(self, qdrant_client=None):
+        self.qdrant_client = qdrant_client
+        self.embedding_manager = EmbeddingManager()
+    
+    async def orchestrate(self, task: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute vector-based orchestration"""
+        if not self.qdrant_client:
+            return {'error': 'Qdrant not configured', 'strategy': 'vector'}
+        
+        # Generate embedding for task
+        embedding = self.embedding_manager.generate(task)
+        
+        # Search for similar tasks/solutions
+        results = await self._vector_search(embedding, context)
+        
+        # Select best match
+        best_match = results[0] if results else None
+        
+        return {
+            'strategy': 'vector',
+            'matches': results,
+            'best_match': best_match,
+            'confidence': best_match['score'] if best_match else 0.0
+        }
+    
+    async def _vector_search(self, embedding: List[float], context: Dict) -> List[Dict]:
+        """Perform vector search"""
+        try:
+            from qdrant_client.models import Filter, FieldCondition, MatchValue
+            
+            # Build filters from context
+            filters = None
+            if context.get('domain'):
+                filters = Filter(must=[
+                    FieldCondition(
+                        key="domain",
+                        match=MatchValue(value=context['domain'])
+                    )
+                ])
+            
+            # Search
+            search_results = self.qdrant_client.search(
+                collection_name="nubem_tasks",
+                query_vector=embedding,
+                query_filter=filters,
+                limit=5,
+                with_payload=True
+            )
+            
+            return [
+                {
+                    'id': result.id,
+                    'score': result.score,
+                    'payload': result.payload
+                }
+                for result in search_results
+            ]
+        except Exception as e:
+            logger.error(f"Vector search failed: {e}")
+            return []
+    
+    def get_name(self) -> str:
+        return "VectorStrategy"
+
+
+class MultiLLMStrategy(OrchestrationStrategy):
+    """Multi-LLM consensus orchestration strategy"""
+    
+    def __init__(self, llm_manager=None):
+        self.llm_manager = llm_manager
+        self.consensus_algorithm = 'weighted'
+    
+    async def orchestrate(self, task: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute multi-LLM orchestration"""
+        if not self.llm_manager:
+            return {'error': 'LLM manager not configured', 'strategy': 'multi_llm'}
+        
+        # Query multiple models
+        responses = await self._query_models(task, context)
+        
+        # Apply consensus
+        consensus = self._apply_consensus(responses)
+        
+        return {
+            'strategy': 'multi_llm',
+            'consensus': consensus,
+            'individual_responses': responses,
+            'algorithm': self.consensus_algorithm,
+            'confidence': consensus.get('confidence', 0.7)
+        }
+    
+    async def _query_models(self, task: str, context: Dict) -> Dict[str, str]:
+        """Query multiple LLM models"""
+        models = context.get('models', ['claude', 'openai'])
+        responses = {}
+        
+        for model in models:
+            try:
+                response = await self.llm_manager.query(model, task)
+                responses[model] = response
+            except Exception as e:
+                logger.warning(f"Model {model} failed: {e}")
+        
+        return responses
+    
+    def _apply_consensus(self, responses: Dict[str, str]) -> Dict:
+        """Apply consensus algorithm to responses"""
+        if not responses:
+            return {'result': None, 'confidence': 0}
+        
+        # Simple weighted consensus
+        weights = {
+            'claude': 1.2,
+            'openai': 1.1,
+            'gemini': 1.0
+        }
+        
+        # For now, select response with highest weight
+        best_model = max(responses.keys(), key=lambda k: weights.get(k, 1.0))
+        
+        return {
+            'result': responses[best_model],
+            'selected_model': best_model,
+            'confidence': len(responses) / 3.0  # More models = higher confidence
+        }
+    
+    def get_name(self) -> str:
+        return "MultiLLMStrategy"
+
+
+class OptimizedStrategy(OrchestrationStrategy):
+    """Cost and performance optimized orchestration strategy"""
+    
+    def __init__(self):
+        self.cache_manager = CacheManager()
+        self.cost_monitor = CostMonitor()
+        self.rate_limiter = RateLimiter()
+    
+    async def orchestrate(self, task: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute optimized orchestration"""
+        # Check cache first
+        cached = self.cache_manager.get(task)
+        if cached:
+            return {
+                'strategy': 'optimized',
+                'result': cached,
+                'from_cache': True,
+                'cost': 0
+            }
+        
+        # Select optimal model based on task
+        model = self._select_optimal_model(task, context)
+        
+        # Check rate limits
+        if not self.rate_limiter.can_proceed(model):
+            await asyncio.sleep(self.rate_limiter.get_wait_time(model))
+        
+        # Execute with monitoring
+        start_time = datetime.now()
+        result = await self._execute_with_model(model, task)
+        latency = (datetime.now() - start_time).total_seconds()
+        
+        # Track costs
+        cost = self.cost_monitor.track(model, len(task), len(str(result)))
+        
+        # Cache result
+        self.cache_manager.set(task, result)
+        
+        return {
+            'strategy': 'optimized',
+            'result': result,
+            'model_used': model,
+            'latency': latency,
+            'cost': cost,
+            'from_cache': False
+        }
+    
+    def _select_optimal_model(self, task: str, context: Dict) -> str:
+        """Select optimal model based on task characteristics"""
+        priority = context.get('priority', 'balanced')
+        
+        if priority == 'speed':
+            return 'gemini-flash'
+        elif priority == 'cost':
+            return 'gpt-3.5-turbo'
+        elif priority == 'quality':
+            return 'claude-3-opus'
+        else:  # balanced
+            task_length = len(task)
+            if task_length < 500:
+                return 'gpt-3.5-turbo'
+            elif task_length < 2000:
+                return 'claude-3-haiku'
+            else:
+                return 'claude-3-sonnet'
+    
+    @with_circuit_breaker(failure_threshold=3, recovery_timeout=30)
+    @with_retry(max_attempts=3, base_delay=1.0)
+    async def _execute_with_model(self, model: str, task: str) -> str:
+        """Execute task with specific model - with circuit breaker protection"""
+        # Placeholder - would integrate with actual LLM
+        return f"Result from {model} for task: {task[:50]}..."
+    
+    def get_name(self) -> str:
+        return "OptimizedStrategy"
+
+
+class UnifiedOrchestrator:
+    """
+    Unified orchestrator that combines all strategies
+    Single entry point for all orchestration needs
+    """
+    
+    def __init__(self, config: Dict[str, Any] = None):
+        self.config = config or {}
+        self.strategies = {}
+        self.default_strategy = 'optimized'
+        
+        # Initialize strategies
+        self._initialize_strategies()
+        
+        # Statistics
+        self.stats = {
+            'total_requests': 0,
+            'strategy_usage': {},
+            'total_time': 0,
+            'errors': 0
+        }
+        
+        logger.info("UnifiedOrchestrator initialized with strategies: " + 
+                   ", ".join(self.strategies.keys()))
+    
+    def _initialize_strategies(self):
+        """Initialize all available strategies"""
+        # Persona strategy
+        if self.config.get('enable_personas', True):
+            self.strategies['persona'] = PersonaStrategy()
+        
+        # Vector strategy
+        if self.config.get('enable_vector', False):
+            try:
+                from qdrant_client import QdrantClient
+                client = QdrantClient(
+                    host=self.config.get('qdrant_host', 'localhost'),
+                    port=self.config.get('qdrant_port', 6333)
+                )
+                self.strategies['vector'] = VectorStrategy(client)
+            except Exception as e:
+                logger.warning(f"Vector strategy not available: {e}")
+        
+        # Multi-LLM strategy
+        if self.config.get('enable_multi_llm', False):
+            try:
+                from .llm_manager import LLMManager
+                manager = LLMManager()
+                self.strategies['multi_llm'] = MultiLLMStrategy(manager)
+            except Exception as e:
+                logger.warning(f"Multi-LLM strategy not available: {e}")
+        
+        # Optimized strategy (always available)
+        self.strategies['optimized'] = OptimizedStrategy()
+    
+    async def orchestrate(self,
+                         task: str,
+                         strategy: Optional[str] = None,
+                         context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Main orchestration method
+        
+        Args:
+            task: Task description or prompt
+            strategy: Strategy to use (persona/vector/multi_llm/optimized/auto)
+            context: Additional context for orchestration
+        
+        Returns:
+            Orchestration result with metadata
+        """
+        start_time = datetime.now()
+        self.stats['total_requests'] += 1
+        
+        # Default context
+        if context is None:
+            context = {}
+        
+        # Select strategy
+        if strategy == 'auto' or strategy is None:
+            strategy = self._auto_select_strategy(task, context)
+        
+        # Validate strategy
+        if strategy not in self.strategies:
+            logger.warning(f"Strategy '{strategy}' not available, using default")
+            strategy = self.default_strategy
+        
+        # Track usage
+        self.stats['strategy_usage'][strategy] = \
+            self.stats['strategy_usage'].get(strategy, 0) + 1
+        
+        try:
+            # Execute strategy
+            result = await self.strategies[strategy].orchestrate(task, context)
+            
+            # Add metadata
+            result['orchestrator'] = 'unified'
+            result['timestamp'] = datetime.now().isoformat()
+            result['execution_time'] = (datetime.now() - start_time).total_seconds()
+            
+            # Track time
+            self.stats['total_time'] += result['execution_time']
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Orchestration failed with {strategy}: {e}")
+            self.stats['errors'] += 1
+            
+            # Try fallback strategy
+            if strategy != self.default_strategy:
+                logger.info(f"Falling back to {self.default_strategy}")
+                return await self.orchestrate(task, self.default_strategy, context)
+            
+            # Complete failure
+            return {
+                'error': str(e),
+                'strategy': strategy,
+                'orchestrator': 'unified',
+                'timestamp': datetime.now().isoformat()
+            }
+    
+    def _auto_select_strategy(self, task: str, context: Dict) -> str:
+        """Automatically select best strategy based on task and context"""
+        # Check for explicit requirements
+        if context.get('require_consensus'):
+            return 'multi_llm' if 'multi_llm' in self.strategies else 'optimized'
+        
+        if context.get('use_vector_search'):
+            return 'vector' if 'vector' in self.strategies else 'optimized'
+        
+        if context.get('use_persona'):
+            return 'persona' if 'persona' in self.strategies else 'optimized'
+        
+        # Analyze task characteristics
+        task_lower = task.lower()
+        
+        # Coding tasks -> persona
+        if any(word in task_lower for word in ['code', 'function', 'debug', 'program']):
+            return 'persona' if 'persona' in self.strategies else 'optimized'
+        
+        # Research tasks -> vector search
+        if any(word in task_lower for word in ['find', 'search', 'similar', 'related']):
+            return 'vector' if 'vector' in self.strategies else 'optimized'
+        
+        # Complex analysis -> multi-LLM
+        if any(word in task_lower for word in ['analyze', 'compare', 'evaluate']):
+            return 'multi_llm' if 'multi_llm' in self.strategies else 'optimized'
+        
+        # Default to optimized
+        return 'optimized'
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get orchestrator statistics"""
+        avg_time = self.stats['total_time'] / self.stats['total_requests'] \
+                  if self.stats['total_requests'] > 0 else 0
+        
+        return {
+            'total_requests': self.stats['total_requests'],
+            'total_errors': self.stats['errors'],
+            'average_time': round(avg_time, 3),
+            'strategy_usage': self.stats['strategy_usage'],
+            'available_strategies': list(self.strategies.keys()),
+            'error_rate': round(self.stats['errors'] / self.stats['total_requests'], 3)
+                         if self.stats['total_requests'] > 0 else 0
+        }
+    
+    def add_strategy(self, name: str, strategy: OrchestrationStrategy):
+        """Add a custom strategy"""
+        self.strategies[name] = strategy
+        logger.info(f"Added strategy: {name}")
+    
+    def remove_strategy(self, name: str):
+        """Remove a strategy"""
+        if name in self.strategies and name != self.default_strategy:
+            del self.strategies[name]
+            logger.info(f"Removed strategy: {name}")
+    
+    def set_default_strategy(self, name: str):
+        """Set default strategy"""
+        if name in self.strategies:
+            self.default_strategy = name
+            logger.info(f"Default strategy set to: {name}")
+
+
+# Helper classes (simplified versions)
+
+class TaskAnalyzer:
+    """Analyzes tasks to determine type and complexity"""
+    
+    def analyze(self, task: str, context: Dict) -> Dict:
+        """Analyze task characteristics"""
+        task_lower = task.lower()
+        
+        # Determine task type
+        if any(word in task_lower for word in ['code', 'function', 'debug']):
+            task_type = 'coding'
+        elif any(word in task_lower for word in ['translate', 'translation']):
+            task_type = 'translation'
+        elif any(word in task_lower for word in ['analyze', 'data', 'statistics']):
+            task_type = 'data'
+        elif any(word in task_lower for word in ['write', 'create', 'draft']):
+            task_type = 'writing'
+        else:
+            task_type = 'general'
+        
+        # Estimate complexity (1-10)
+        complexity = min(10, len(task) // 100 + 3)
+        
+        return {
+            'task_type': task_type,
+            'complexity': complexity,
+            'confidence': 0.8,
+            'keywords': task_lower.split()[:10]
+        }
+
+
+class EmbeddingManager:
+    """Manages text embeddings (singleton pattern)"""
+    
+    _instance = None
+    _model = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialize()
+        return cls._instance
+    
+    def _initialize(self):
+        """Initialize embedding model"""
+        try:
+            from sentence_transformers import SentenceTransformer
+            self._model = SentenceTransformer('all-MiniLM-L6-v2')
+            logger.info("Embedding model loaded")
+        except Exception as e:
+            logger.warning(f"Could not load embedding model: {e}")
+            self._model = None
+    
+    @lru_cache(maxsize=1000)
+    def generate(self, text: str) -> List[float]:
+        """Generate embedding for text"""
+        if self._model:
+            try:
+                embedding = self._model.encode(text, show_progress_bar=False)
+                return embedding.tolist()
+            except Exception as e:
+                logger.error(f"Embedding generation failed: {e}")
+        
+        # Fallback: simple hash-based embedding
+        import hashlib
+        text_hash = int(hashlib.md5(text.encode()).hexdigest(), 16)
+        # Generate deterministic pseudo-random vector
+        import random
+        random.seed(text_hash)
+        return [random.gauss(0, 1) for _ in range(384)]
+
+
+class CacheManager:
+    """Simple cache manager"""
+    
+    def __init__(self, ttl: int = 3600):
+        self.cache = {}
+        self.ttl = ttl
+    
+    def get(self, key: str) -> Optional[Any]:
+        """Get from cache"""
+        if key in self.cache:
+            entry = self.cache[key]
+            if datetime.now().timestamp() - entry['timestamp'] < self.ttl:
+                return entry['value']
+            else:
+                del self.cache[key]
+        return None
+    
+    def set(self, key: str, value: Any):
+        """Set in cache"""
+        self.cache[key] = {
+            'value': value,
+            'timestamp': datetime.now().timestamp()
+        }
+
+
+class CostMonitor:
+    """Monitor API costs"""
+    
+    def __init__(self):
+        self.costs = {
+            'gpt-3.5-turbo': {'input': 0.0005, 'output': 0.0015},
+            'gpt-4': {'input': 0.01, 'output': 0.03},
+            'claude-3-haiku': {'input': 0.00025, 'output': 0.00125},
+            'claude-3-sonnet': {'input': 0.003, 'output': 0.015},
+            'claude-3-opus': {'input': 0.015, 'output': 0.075},
+            'gemini-flash': {'input': 0.00015, 'output': 0.0006}
+        }
+        self.total_cost = 0
+    
+    def track(self, model: str, input_chars: int, output_chars: int) -> float:
+        """Track cost for API call"""
+        if model in self.costs:
+            # Rough token estimation
+            input_tokens = input_chars / 4
+            output_tokens = output_chars / 4
+            
+            cost = (self.costs[model]['input'] * input_tokens / 1000 +
+                   self.costs[model]['output'] * output_tokens / 1000)
+            
+            self.total_cost += cost
+            return cost
+        return 0
+
+
+class RateLimiter:
+    """Simple rate limiter"""
+    
+    def __init__(self):
+        self.limits = {
+            'gpt-3.5-turbo': {'rpm': 3500, 'tpm': 90000},
+            'claude-3-haiku': {'rpm': 1000, 'tpm': 100000},
+            'gemini-flash': {'rpm': 2000, 'tpm': 1000000}
+        }
+        self.usage = {}
+    
+    def can_proceed(self, model: str) -> bool:
+        """Check if can proceed with request"""
+        # Simplified - always return True for now
+        return True
+    
+    def get_wait_time(self, model: str) -> float:
+        """Get wait time in seconds"""
+        return 0.1  # Minimal wait
+
+
+# Singleton instance
+_unified_orchestrator = None
+
+def get_unified_orchestrator(config: Dict[str, Any] = None) -> UnifiedOrchestrator:
+    """Get singleton instance of unified orchestrator"""
+    global _unified_orchestrator
+    if _unified_orchestrator is None:
+        _unified_orchestrator = UnifiedOrchestrator(config or {})
+    return _unified_orchestrator
+
+
+# Example usage and testing
+async def test_unified_orchestrator():
+    """Test the unified orchestrator"""
+    
+    config = {
+        'enable_personas': True,
+        'enable_vector': False,  # Requires Qdrant
+        'enable_multi_llm': False,  # Requires LLM manager
+        'enable_optimized': True
+    }
+    
+    orchestrator = get_unified_orchestrator(config)
+    
+    # Test different strategies
+    test_cases = [
+        ("Write a Python function for quicksort", "auto"),
+        ("Find similar problems to database optimization", "auto"),
+        ("Analyze the pros and cons of microservices", "auto"),
+        ("Translate 'Hello World' to Spanish", "persona"),
+        ("What is 2+2?", "optimized")
+    ]
+    
+    print("Testing Unified Orchestrator\n" + "="*50)
+    
+    for task, strategy in test_cases:
+        print(f"\nTask: '{task[:50]}...'")
+        print(f"Strategy: {strategy}")
+        
+        result = await orchestrator.orchestrate(task, strategy)
+        
+        if 'error' in result:
+            print(f"❌ Error: {result['error']}")
+        else:
+            print(f"✅ Success!")
+            print(f"   Strategy used: {result.get('strategy')}")
+            print(f"   Execution time: {result.get('execution_time', 0):.3f}s")
+            print(f"   Confidence: {result.get('confidence', 'N/A')}")
+    
+    # Show statistics
+    stats = orchestrator.get_statistics()
+    print(f"\n" + "="*50)
+    print("Statistics:")
+    print(f"  Total requests: {stats['total_requests']}")
+    print(f"  Average time: {stats['average_time']:.3f}s")
+    print(f"  Error rate: {stats['error_rate']:.1%}")
+    print(f"  Strategy usage: {stats['strategy_usage']}")
+
+
+if __name__ == "__main__":
+    asyncio.run(test_unified_orchestrator())
